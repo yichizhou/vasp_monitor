@@ -1,0 +1,33 @@
+code:
+  local_dir: $CONFIG_DIR/
+data:
+  local_dir: $CONFIG_DIR/
+  remote_dir: active_learning/
+  storage_id: storageA
+description: active_learning
+environment:
+  image: amlt-sing/pytorch-1.9.0-cuda11.3-a100
+  setup:
+  - sudo apt-get update
+  - sudo apt-get install -y git wget
+jobs:
+- command:
+  - git clone https://yichizhou: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@github.com/yichizhou/rl4csp.git
+  - cd rl4csp
+  - git checkout active_learning
+  - sh install.sh
+  - python run_vasp.py --file test.xyz --vasp_dir ./vasp_run_test.xyz --read_dir /home/yiczho/mycontainer/active_learning/amlt_al/data/unlabeled
+    --write_dir /home/yiczho/mycontainer/active_learning/amlt_al/data/labeled
+  - rm -rf ./vasp_run_test.xyz
+  name: active_learner
+  priority: high
+  sku: C8
+  sla_tier: Basic
+storage:
+  storageA:
+    container_name: teamdrive
+    mount_dir: /mnt/data
+    storage_account_name: yiczho
+target:
+  name: itpwus2cpucl1
+  service: amlk8s

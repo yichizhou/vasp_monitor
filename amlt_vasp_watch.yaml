@@ -1,0 +1,52 @@
+## Commands:
+## amlt project create <your-project-name> <storage-account-name>
+## - amlt storage upload --config-file amlt.yaml    >>  upload data to storage
+## - amlt run amlt.yaml                             >>  run the experiment
+
+
+# For field details: https://amulet-docs.azurewebsites.net/config_file.html
+description: vasp_watcher # change this
+# Docker environment (repo/image:tag)
+# Install custom dependencies in the image using the optional "image_setup" field
+# Set up the container and environment using the optional "setup" field
+# environment:
+#   image: amlt-sing/deepspeed-0.4-pytorch-1.9.0-cuda11.3-a100
+environment:  
+  registry: hanyang.azurecr.io
+  image: vasps/vasp_ubuntu_gnu_ompi_scratch:latest
+  setup:
+    - sudo apt-get update
+    - sudo apt-get install -y git wget
+
+## target: the machine to run the calculation
+target:
+  service: sing
+  name: msrresrchvc
+
+storage:
+  storageA:
+    storage_account_name: yiczho # change this
+    container_name: teamdrive # change this
+    mount_dir: /mnt/data
+      
+# Experiment source code. This section is optional.
+# $CONFIG_DIR is expanded to the directory of this config file.
+code:
+  local_dir: $CONFIG_DIR/
+
+# Optional field.
+data:
+  local_dir: $CONFIG_DIR/
+  remote_dir: vasp_watcher/ # change this
+  storage_id: storageA
+
+# SKU usage: G1 (single GPU), G4 (quad GPU), G4-V100 (1 machine, 4 V100 gpus), etc...
+jobs:
+    - name: active_learner
+      sku: C8
+      sla_tier: Basic
+      priority: high
+      command:
+        - pip install watchdog
+        - pip install ase
+        - pip install tqdm
